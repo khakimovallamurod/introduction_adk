@@ -1,6 +1,8 @@
 import datetime
 from zoneinfo import ZoneInfo
 from google.adk.agents import Agent
+# import config
+import requests
 
 def get_weather(city: str) -> dict:
     """Retrieves the current weather report for a specified city.
@@ -11,27 +13,30 @@ def get_weather(city: str) -> dict:
     Returns:
         dict: status and result or error msg.
     """
-    if city.lower() == "buxoro":
-        return {
-            "status": "success",
-            "report": (
-                "The weather in Buxoro is hot with a temperature of 30 degrees"
-                
-            ),
-        }
-    elif city.lower() == "samarkand":
-        return {
-            "status": "success",
-            "report": (
-                "The weather in Samarkand is sunny with a temperature of 27 degrees"
-            )
-        }
-    else:
+    
+    url = f"http://api.weatherstack.com/current?access_key={API_KEY}&query={city}"
+    response = requests.get(url)
+    data = response.json()
+
+    if 'current' not in data:
         return {
             "status": "error",
             "error_message": f"Weather information for '{city}' is not available.",
         }
+    else:
+        temperature = data['current']['temperature']
+        weather_desc = data['current']['weather_descriptions'][0]
+        country = data['location']['country']
+        region = data['location']['region']
+        localtime = data['location']['localtime']
 
+        return {
+            "status": "success",
+            "report": (
+                f"Country: {country}\nCity: {region}\nTemperature: {temperature}°C\nWeather: {weather_desc}\nLocal Time: {localtime}"
+               
+            ),
+        }
 
 def get_current_time(city: str) -> dict:
     """Returns the current time in a specified city.
